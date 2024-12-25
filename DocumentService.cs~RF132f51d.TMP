@@ -1,0 +1,165 @@
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Oracle.ManagedDataAccess.Client;
+using System.Data;
+
+namespace NalogZaUtovar;
+
+public class DocumentService
+{
+    private readonly string _connectionString;
+
+    public DocumentService(string connectionString)
+    {
+        _connectionString = connectionString;
+    }
+
+    public async Task<byte[]?> GetDocumentByDetailsAsync(string skladiste, string kupac, string kamion, int nalog)
+    {
+        string query = @"
+            SELECT DOKUMENT
+            FROM NU_DOKUMENTI
+            WHERE SKLADISTE = :Skladiste
+              AND KUPAC = :Kupac
+              AND REGISTRACIJA_VOZILA = :Kamion
+              AND BROJ_NALOGA = :Nalog";
+
+        return await ExecuteQueryAsync(query, new OracleParameter("Skladiste", skladiste),
+                                             new OracleParameter("Vozac", kupac),
+                                             new OracleParameter("Prevoznik", kamion),
+                                             new OracleParameter("Firma", nalog));
+    }
+
+    public async Task<byte[]?> GetDocumentByOrderNumberAsync(int brojNaloga)
+    {
+        const string query = @"
+            SELECT DOKUMENT
+            FROM NU_DOKUMENTI
+            WHERE BROJ_NALOGA = :BrojNaloga";
+
+        return await ExecuteQueryAsync(query, new OracleParameter("BrojNaloga", brojNaloga));
+    }
+
+    public async Task<List<string>> GetKupciPoSkladistu(string skladiste)
+    {
+        var customers = new List<string>();
+
+        using var connection = new OracleConnection(_connectionString);
+        await connection.OpenAsync();
+
+        string query = "SELECT DISTINCT KUPAC FROM NU_DOKUMENTI WHERE SKLADISTE = :Skladiste";
+        using var command = new OracleCommand(query, connection);
+        command.Parameters.Add(new OracleParameter("Skladiste", skladiste));
+
+        using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            customers.Add(reader.GetString(0));
+        }
+
+        return customers;
+    }
+
+    public async Task<List<string>> GetKamioniPoSkladistuIKupcu(string skladiste, string kupac)
+    {
+        var kamioni = new List<string>();
+
+        using var connection = new OracleConnection(_connectionString);
+        await connection.OpenAsync();
+
+        string query = @"
+        SELECT DISTINCT REGISTRACIJA_VOZILA 
+        FROM NU_DOKUMENTI 
+        WHERE SKLADISTE = :Skladiste AND KUPAC = :Kupac";
+
+        using var command = new OracleCommand(query, connection);
+        command.Parameters.Add(new OracleParameter("Skladiste", skladiste));
+        command.Parameters.Add(new OracleParameter("Kupac", kupac));
+
+        using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            kamioni.Add(reader.GetString(0));
+        }
+
+        return kamioni;
+    }
+
+    public async Task<List<int>> GetNaloziPoSkladistuKupcuKamionu(string skladiste, string kupac, string kamion)
+    {
+        var nalozi = new List<int>();
+
+        using var connection = new OracleConnection(_connectionString);
+        await connection.OpenAsync();
+
+        string query = @"
+        SELECT DISTINCT BROJ_NALOGA 
+        FROM NU_DOKUMENTI 
+        WHERE SKLADISTE = :Skladiste AND KUPAC = :Kupac AND REGISTRACIJA_VOZILA = :Kamion";
+
+        using var command = new OracleCommand(query, connection);
+        command.Parameters.Add(new OracleParameter("Skladiste", skladiste));
+        command.Parameters.Add(new OracleParameter("Kupac", kupac));
+        command.Parameters.Add(new OracleParameter("Kamion", kamion));
+
+
+        using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            nalozi.Add(reader.GetInt32(0));
+        }
+
+        return nalozi;
+    }
+
+    public async Task PostNalog(NalogPostDto request)
+    {
+        using var connection = new OracleConnection(_connectionString);
+        await connection.OpenAsync();
+
+        byte[] dokumentBytes;
+        try
+        {
+            dokumentBytes = Convert.FromBase64String(request.Dokument);
+        }
+        catch
+        {
+            throw new InvalidCastException();
+        }
+
+        byte[]? qrSinglBytes = string.IsNullOrEmpty(request.QrSingl) ? null : Convert.FromBase64String(request.QrSingl);
+        byte[]? qrFullBytes = string.IsNullOrEmpty(request.QrFull) ? null : Convert.FromBase64String(request.QrFull);
+
+        string query = @"
+        INSERT INTO NU_DOKUMENTI (SKLADISTE, KUPAC, REGISTRACIJA_VOZILA, GODINA_NALOGA, BROJ_NALOGA, DOKUMENT, QR_SINGL, QR_FULL)
+        VALUES (:Skladiste, :Kupac, :RegistracijaVozila, :GodinaNaloga, :BrojNaloga, :Dokument, :QrSingl, :QrFull)";
+
+        using var command = new OracleCommand(query, connection);
+        command.Parameters.Add(new OracleParameter("Skladiste", request.Skladiste));
+        command.Parameters.Add(new OracleParameter("Kupac", request.Kupac));
+        command.Parameters.Add(new OracleParameter("RegistracijaVozila", request.RegistracijaVozila));
+        command.Parameters.Add(new OracleParameter("GodinaNaloga", request.GodinaNaloga ?? (object)DBNull.Value));
+        command.Parameters.Add(new OracleParameter("BrojNaloga", request.BrojNaloga));
+        command.Parameters.Add(new OracleParameter("Dokument", dokumentBytes));
+        command.Parameters.Add(new OracleParameter("QrSingl", qrSinglBytes ?? (object)DBNull.Value));
+        command.Parameters.Add(new OracleParameter("QrFull", qrFullBytes ?? (object)DBNull.Value));
+
+        await command.ExecuteNonQueryAsync();
+    }
+
+    private async Task<byte[]?> ExecuteQueryAsync(string query, params OracleParameter[] parameters)
+    {
+        await using var connection = new OracleConnection(_connectionString);
+        await connection.OpenAsync();
+
+        await using var command = new OracleCommand(query, connection);
+        command.Parameters.AddRange(parameters);
+
+        await using var reader = await command.ExecuteReaderAsync(CommandBehavior.SequentialAccess);
+        if (await reader.ReadAsync())
+        {
+            return reader["DOKUMENT"] as byte[];
+        }
+
+        return null;
+    }
+}

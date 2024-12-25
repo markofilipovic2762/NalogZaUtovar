@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121.
+-->
+<Project>
+  <PropertyGroup>
+    <_PublishTargetUrl>C:\Users\fil5672\source\repos\NalogZaUtovar\bin\Release\net8.0\publish\</_PublishTargetUrl>
+    <History>True|2024-12-16T14:22:52.1895872Z||;True|2024-12-13T15:20:59.7941938+01:00||;True|2024-12-13T11:58:37.3572824+01:00||;True|2024-12-13T08:44:38.8021960+01:00||;True|2024-12-13T08:03:18.4773134+01:00||;True|2024-12-12T14:59:56.9141639+01:00||;True|2024-12-04T08:44:33.7785162+01:00||;True|2024-11-28T14:34:43.7774757+01:00||;True|2024-11-28T11:12:23.5865160+01:00||;True|2024-11-28T07:28:48.8799219+01:00||;</History>
+    <LastFailureDetails />
+  </PropertyGroup>
+</Project>

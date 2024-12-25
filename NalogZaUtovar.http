@@ -1,0 +1,6 @@
+@NalogZaUtovar_HostAddress = http://localhost:5233
+
+GET {{NalogZaUtovar_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

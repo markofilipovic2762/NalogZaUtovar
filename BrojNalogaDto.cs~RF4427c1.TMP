@@ -1,0 +1,6 @@
+﻿namespace NalogZaUtovar
+{
+    public class BrojNalogaDto
+    {
+    }
+}

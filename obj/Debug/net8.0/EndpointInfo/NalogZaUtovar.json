@@ -1,0 +1,387 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "NalogZaUtovar",
+    "version": "1.0"
+  },
+  "paths": {
+    "/get-pdf": {
+      "post": {
+        "tags": [
+          "NalogZaUtovar"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NalogDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/pdfPoNalogu": {
+      "post": {
+        "tags": [
+          "NalogZaUtovar"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BrojNalogaDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/skladista": {
+      "get": {
+        "tags": [
+          "NalogZaUtovar"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/kupciPoSkladistu": {
+      "get": {
+        "tags": [
+          "NalogZaUtovar"
+        ],
+        "description": "Vraća sve kupce za određeno skladište.",
+        "operationId": "Kupci po skladistu",
+        "parameters": [
+          {
+            "name": "skladiste",
+            "in": "query",
+            "description": "Naziv skladišta za koje želite preuzeti kupce.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/kamioniPoSkladistuIKupcu": {
+      "get": {
+        "tags": [
+          "NalogZaUtovar"
+        ],
+        "description": "Vraća sve kamione za određeno skladište.",
+        "operationId": "Kamioni Po Skladistu i Kupcu",
+        "parameters": [
+          {
+            "name": "skladiste",
+            "in": "query",
+            "description": "Naziv skladišta",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kupac",
+            "in": "query",
+            "description": "Naziv kupca",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/naloziPoSkladistuKupcuKamionu": {
+      "get": {
+        "tags": [
+          "NalogZaUtovar"
+        ],
+        "description": "Vraća sve kupce za određeno skladište.",
+        "operationId": "Nalozi Po Skladistu,Kupcu i Kamionu",
+        "parameters": [
+          {
+            "name": "skladiste",
+            "in": "query",
+            "description": "Registracija kamiona",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kupac",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kamion",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/insert": {
+      "post": {
+        "tags": [
+          "Unos naloga"
+        ],
+        "description": "Ubacuje novi red u tabelu.",
+        "operationId": "Unos jednog naloga",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NalogPostDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/multiinsert": {
+      "post": {
+        "tags": [
+          "Unos naloga"
+        ],
+        "description": "Ubacuje ili azurira vise naloga u tabeli.",
+        "operationId": "Ubacivanje i azuriranje vise naloga odjednom",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InsertUpdateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BrojNalogaDto": {
+        "required": [
+          "brojNaloga"
+        ],
+        "type": "object",
+        "properties": {
+          "brojNaloga": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "InsertUpdateDto": {
+        "type": "object",
+        "properties": {
+          "requestListInsert": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NalogPostDto"
+            },
+            "nullable": true
+          },
+          "requestListUpdate": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NalogPostDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NalogDto": {
+        "required": [
+          "kamion",
+          "kupac",
+          "nalog",
+          "skladiste"
+        ],
+        "type": "object",
+        "properties": {
+          "skladiste": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "kupac": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "kamion": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "nalog": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NalogPostDto": {
+        "required": [
+          "brojNaloga",
+          "dokument",
+          "kupac",
+          "registracijaVozila",
+          "skladiste"
+        ],
+        "type": "object",
+        "properties": {
+          "skladiste": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "kupac": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "registracijaVozila": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "godinaNaloga": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "brojNaloga": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dokument": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "dokumentBytes": {
+            "type": "string",
+            "format": "byte",
+            "nullable": true,
+            "readOnly": true
+          },
+          "qrSingl": {
+            "type": "string",
+            "nullable": true
+          },
+          "qrSinglBytes": {
+            "type": "string",
+            "format": "byte",
+            "nullable": true,
+            "readOnly": true
+          },
+          "qrFull": {
+            "type": "string",
+            "nullable": true
+          },
+          "qrFullBytes": {
+            "type": "string",
+            "format": "byte",
+            "nullable": true,
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}
